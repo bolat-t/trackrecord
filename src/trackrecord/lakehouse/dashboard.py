@@ -30,7 +30,8 @@ def _counter(name, dataset, field, label):
     return {"name": name,
             "queries": _q(dataset, [{"name": field, "expression": f"`{field}`"}], True),
             "spec": {"version": 2, "widgetType": "counter",
-                     "encodings": {"value": {"fieldName": field, "displayName": label}}}}
+                     "encodings": {"value": {"fieldName": field, "rowNumber": 1,
+                                             "displayName": label}}}}
 
 
 def _bar(name, dataset, dim, measure_expr, measure_name, xlab, ylab, line=False):

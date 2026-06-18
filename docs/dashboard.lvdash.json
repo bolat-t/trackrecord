@@ -65,6 +65,7 @@
               "encodings": {
                 "value": {
                   "fieldName": "pct_on_time",
+                  "rowNumber": 1,
                   "displayName": "On-time % (<=5 min)"
                 }
               }
@@ -101,6 +102,7 @@
               "encodings": {
                 "value": {
                   "fieldName": "avg_delay_min",
+                  "rowNumber": 1,
                   "displayName": "Avg delay (min)"
                 }
               }
@@ -137,6 +139,7 @@
               "encodings": {
                 "value": {
                   "fieldName": "p90_delay_min",
+                  "rowNumber": 1,
                   "displayName": "P90 delay (min)"
                 }
               }
