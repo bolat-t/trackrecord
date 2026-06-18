@@ -1,0 +1,37 @@
+name: collect-realtime
+
+# Polls the TfNSW Sydney Trains GTFS-RT feeds and lands raw Parquet in the
+# Unity Catalog Volume. Capture + upload only (no Databricks compute), so it
+# stays clear of Free Edition's compute quota. Bronze is refreshed separately.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 min (UTC); GitHub may delay scheduled runs
+  workflow_dispatch: {}
+
+concurrency:
+  group: collect-realtime
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TFNSW_API_KEY: ${{ secrets.TFNSW_API_KEY }}
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: uv sync --frozen
+      - name: Capture trip updates + vehicle positions
+        run: |
+          uv run trackrecord-collect --mode sydneytrains --kind tripupdate
+          uv run trackrecord-collect --mode sydneytrains --kind vehiclepos
+      - name: Upload raw to Unity Catalog Volume
+        run: uv run trackrecord-upload

@@ -1,0 +1,26 @@
+[project]
+name = "trackrecord"
+version = "0.1.0"
+description = "Sydney public-transport reliability lakehouse (TfNSW GTFS-RT -> Databricks medallion -> MLflow + AI/BI)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "gtfs-realtime-bindings>=1.0.0",
+    "httpx>=0.28.1",
+    "pandas>=2.2.0",
+    "pyarrow>=16.0.0",
+    "duckdb>=1.1.0",
+    "python-dotenv>=1.0.1",
+    "databricks-sdk>=0.30",
+]
+
+[project.scripts]
+trackrecord-smoke = "trackrecord.tfnsw_smoke:main"
+trackrecord-collect = "trackrecord.ingest.realtime:main"
+trackrecord-gtfs = "trackrecord.ingest.static_gtfs:main"
+trackrecord-bronze = "trackrecord.lakehouse.bronze:main"
+trackrecord-upload = "trackrecord.lakehouse.upload:main"
+
+[build-system]
+requires = ["uv_build>=0.11.6,<0.12.0"]
+build-backend = "uv_build"
