@@ -22,6 +22,7 @@ trackrecord-weather = "trackrecord.ingest.weather:main"
 trackrecord-bronze = "trackrecord.lakehouse.bronze:main"
 trackrecord-upload = "trackrecord.lakehouse.upload:main"
 trackrecord-silver = "trackrecord.lakehouse.silver:main"
+trackrecord-gold = "trackrecord.lakehouse.gold:main"
 
 [build-system]
 requires = ["uv_build>=0.11.6,<0.12.0"]
