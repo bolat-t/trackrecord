@@ -80,6 +80,13 @@ def build_bronze(w: WorkspaceClient, wid: str, cat: str, vroot: str) -> list[tup
         run_sql(w, wid, f"CREATE OR REPLACE TABLE {tbl} AS "
                         f"SELECT * FROM read_files('{src}', format => 'parquet')")
         created.append(tbl)
+    # Weather (single rolling-window file) — built if present locally / in the Volume.
+    if (config.DATA_RAW / "weather" / "sydney" / "weather.parquet").exists():
+        tbl = f"{cat}.bronze.weather_sydney"
+        src = f"{vroot}/weather/sydney/weather.parquet"
+        run_sql(w, wid, f"CREATE OR REPLACE TABLE {tbl} AS "
+                        f"SELECT * FROM read_files('{src}', format => 'parquet')")
+        created.append(tbl)
     union = " UNION ALL ".join(f"SELECT '{t}' AS tbl, count(*) AS n FROM {t}" for t in created)
     resp = run_sql(w, wid, f"SELECT tbl, n FROM ({union}) ORDER BY tbl")
     return [(r[0], int(r[1])) for r in rows(resp)]

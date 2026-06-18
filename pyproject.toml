@@ -18,6 +18,7 @@ dependencies = [
 trackrecord-smoke = "trackrecord.tfnsw_smoke:main"
 trackrecord-collect = "trackrecord.ingest.realtime:main"
 trackrecord-gtfs = "trackrecord.ingest.static_gtfs:main"
+trackrecord-weather = "trackrecord.ingest.weather:main"
 trackrecord-bronze = "trackrecord.lakehouse.bronze:main"
 trackrecord-upload = "trackrecord.lakehouse.upload:main"
 trackrecord-silver = "trackrecord.lakehouse.silver:main"

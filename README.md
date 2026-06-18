@@ -31,7 +31,7 @@ call the TfNSW API directly. This is also just a clean raw-landing-zone pattern.
 | **Orchestration** | **Databricks Workflows** | one job: ingest → bronze → silver → gold → score |
 | **ML** | **MLflow** | track + register a ">5 min late" classifier; batch score |
 | **Dashboard** | **Databricks AI/BI** | web-based, Mac-friendly (no Power BI / Windows dependency) |
-| **Weather** | Bureau of Meteorology (BOM) | rain/temp join for the "rain adds Y minutes" angle |
+| **Weather** | **Open-Meteo** (hourly precip) | rain/temp join for "rain adds Y min" (BOM tested first but blocks automated pulls) |
 
 ## Data sources (verified, honestly labelled)
 
@@ -41,18 +41,18 @@ call the TfNSW API directly. This is also just a clean raw-landing-zone pattern.
 - **Static GTFS** schedule bundles — the scheduled times we measure against.
 
 Two honest constraints shaped the design (both verified June 2026):
-- ⚠️ The **"Historical GTFS and GTFS Realtime"** backfill dataset currently covers **Metro + Ferry only** ("other modes over time"). So TrackRecord uses a **hybrid** backbone: build immediately on **Metro + Ferry historical** data, while a **Sydney Trains live collector** accumulates real trip updates for the headline reliability story.
+- ⚠️ The **"Historical GTFS and GTFS Realtime"** backfill dataset currently covers **Metro + Ferry only** ("other modes over time"). So TrackRecord's backbone is a **Sydney Trains live collector** (15-min cron) accumulating real trip updates for the headline reliability story; **Metro + Ferry historical** backfill is optional/deferred.
 - ⚠️ Databricks Free Edition is **serverless-only**, caps usage (overruns pause compute for the day), and **restricts notebook outbound internet** — hence the external ingestion above.
 
-**Bureau of Meteorology** — public Sydney observations, joined in Silver for the rain-vs-delay analysis.
+**Open-Meteo** — free, key-less **hourly precipitation + temperature** for Sydney, joined in Silver by (date, hour) for the rain-vs-delay analysis. BOM's Observatory Hill JSON was tested first but 301-redirects / blocks automated pulls and only exposes cumulative "rain since 9am", so Open-Meteo is the robust choice.
 
-Attribution: contains data sourced from Transport for NSW and the Bureau of Meteorology. Used for non-commercial, educational purposes.
+Attribution: contains data sourced from Transport for NSW; weather by Open-Meteo (CC-BY). Used for non-commercial, educational purposes.
 
 ## Phases
 
 - [x] **Phase 0 — Setup & verify.** Repo + `uv` env (Py 3.12); TfNSW key + Databricks Free Edition created. Endpoints verified **live**: Sydney Trains trip updates on **`/v2/gtfs/realtime/sydneytrains`** (v1 → 404), vehicle positions on `/v2/gtfs/vehiclepos/...`, static GTFS on `/v1/gtfs/schedule/...`. *Live smoke test: 446 trip updates parsed, feed @ 2026-06-18 10:20 AEST.*
 - [x] **Phase 1 — Bronze.** Local ingesters (`trackrecord-collect`, `trackrecord-gtfs`) → raw Parquet → **UC Volume** (`workspace.bronze.raw`) → **Bronze Delta** (`trackrecord-bronze`): `gtfs_*` (routes 137, trips 64,995, stops 1,214, stop_times 1,187,560, calendar 121) + `rt_trip_updates` + `rt_vehicle_positions`. **Live capture runs every 15 min via GitHub Actions** (`.github/workflows/collect.yml`) → Volume — verified accumulating (2 files / 7,441 rows). *Quirk: Free Edition blocks new catalogs (`InvalidState`) → we use the `workspace` catalog. Metro/Ferry historical backfill: optional/deferred now that trains accumulate live.*
-- [~] **Phase 2 — Silver.** `workspace.silver.stop_delays` (`trackrecord-silver`): canonical `delay = coalesce(rt arrival/departure delay)`, deduped to the latest capture per (trip, service_date, stop), enriched with line / station / scheduled time. **Join quirk solved:** RT↔static match on `(trip_id, stop_id)` because the RT `stop_sequence` is sparse/NULL → 98% scheduled-time coverage. Snapshot worst T-line = T4 (Cronulla↔Bondi Jn). *Remaining: BOM weather join for the rain-vs-delay angle.*
+- [x] **Phase 2 — Silver.** `workspace.silver.stop_delays` (`trackrecord-silver`): canonical `delay = coalesce(rt arrival/departure delay)`, deduped to the latest capture per (trip, service_date, stop), enriched with line / station / scheduled time + **weather**. **Join quirk solved:** RT↔static match on `(trip_id, stop_id)` (RT `stop_sequence` is sparse/NULL) → 98% scheduled-time coverage; Open-Meteo hourly weather joined by (date, hour). Snapshot worst T-line = T4 (Cronulla↔Bondi Jn); rain-vs-delay awaits actual rain.
 - [ ] **Phase 3 — Gold + dashboard.** OTP by line/hour/day/station; AI/BI dashboard; headline stat.
 - [ ] **Phase 4 — ML (MLflow).** ">5 min late" classifier; track + register; batch score.
 - [ ] **Phase 5 — Orchestrate & polish.** Databricks Workflow; `FINDINGS.md` write-up; final diagram.

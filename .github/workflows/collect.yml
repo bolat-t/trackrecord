@@ -33,5 +33,7 @@ jobs:
         run: |
           uv run trackrecord-collect --mode sydneytrains --kind tripupdate
           uv run trackrecord-collect --mode sydneytrains --kind vehiclepos
+      - name: Capture Sydney weather (Open-Meteo)
+        run: uv run trackrecord-weather
       - name: Upload raw to Unity Catalog Volume
         run: uv run trackrecord-upload
