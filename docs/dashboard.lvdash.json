@@ -1,0 +1,367 @@
+{
+  "datasets": [
+    {
+      "name": "kpi",
+      "displayName": "KPI",
+      "queryLines": [
+        "SELECT * FROM workspace.gold.network_kpi"
+      ]
+    },
+    {
+      "name": "lines",
+      "displayName": "Lines",
+      "queryLines": [
+        "SELECT line_code, avg_delay_min, pct_late_5min FROM workspace.gold.line_punctuality WHERE is_suburban"
+      ]
+    },
+    {
+      "name": "hourly",
+      "displayName": "Hourly",
+      "queryLines": [
+        "SELECT sched_hour, avg_delay_min FROM workspace.gold.hourly_punctuality"
+      ]
+    },
+    {
+      "name": "stops",
+      "displayName": "Stations",
+      "queryLines": [
+        "SELECT stop_name, avg_delay_min, pct_late_5min, stop_events FROM workspace.gold.stop_punctuality ORDER BY avg_delay_min DESC LIMIT 15"
+      ]
+    },
+    {
+      "name": "weather",
+      "displayName": "Weather",
+      "queryLines": [
+        "SELECT CASE WHEN is_raining THEN 'Wet' ELSE 'Dry' END AS condition, avg_delay_min FROM workspace.gold.weather_delay"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "reliability",
+      "displayName": "Reliability",
+      "layout": [
+        {
+          "widget": {
+            "name": "on_time",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "kpi",
+                  "fields": [
+                    {
+                      "name": "pct_on_time",
+                      "expression": "`pct_on_time`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "pct_on_time",
+                  "displayName": "On-time % (<=5 min)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "avg_delay",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "kpi",
+                  "fields": [
+                    {
+                      "name": "avg_delay_min",
+                      "expression": "`avg_delay_min`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg_delay_min",
+                  "displayName": "Avg delay (min)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "p90",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "kpi",
+                  "fields": [
+                    {
+                      "name": "p90_delay_min",
+                      "expression": "`p90_delay_min`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "p90_delay_min",
+                  "displayName": "P90 delay (min)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "byline",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "lines",
+                  "fields": [
+                    {
+                      "name": "line_code",
+                      "expression": "`line_code`"
+                    },
+                    {
+                      "name": "avg_delay",
+                      "expression": "AVG(`avg_delay_min`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "line_code",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Line"
+                },
+                "y": {
+                  "fieldName": "avg_delay",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Avg delay (min)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "byhour",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "hourly",
+                  "fields": [
+                    {
+                      "name": "sched_hour",
+                      "expression": "`sched_hour`"
+                    },
+                    {
+                      "name": "avg_delay",
+                      "expression": "AVG(`avg_delay_min`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "sched_hour",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Scheduled hour"
+                },
+                "y": {
+                  "fieldName": "avg_delay",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Avg delay (min)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 3,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "stations",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "stops",
+                  "fields": [
+                    {
+                      "name": "stop_name",
+                      "expression": "`stop_name`"
+                    },
+                    {
+                      "name": "avg_delay_min",
+                      "expression": "`avg_delay_min`"
+                    },
+                    {
+                      "name": "pct_late_5min",
+                      "expression": "`pct_late_5min`"
+                    },
+                    {
+                      "name": "stop_events",
+                      "expression": "`stop_events`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "stop_name",
+                    "displayName": "Station"
+                  },
+                  {
+                    "fieldName": "avg_delay_min",
+                    "displayName": "Avg delay (min)"
+                  },
+                  {
+                    "fieldName": "pct_late_5min",
+                    "displayName": "% >5min late"
+                  },
+                  {
+                    "fieldName": "stop_events",
+                    "displayName": "Events"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "byweather",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "datasetName": "weather",
+                  "fields": [
+                    {
+                      "name": "condition",
+                      "expression": "`condition`"
+                    },
+                    {
+                      "name": "avg_delay",
+                      "expression": "AVG(`avg_delay_min`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "condition",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Condition"
+                },
+                "y": {
+                  "fieldName": "avg_delay",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Avg delay (min)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        }
+      ]
+    }
+  ]
+}
