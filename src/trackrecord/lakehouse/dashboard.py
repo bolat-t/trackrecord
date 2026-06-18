@@ -21,15 +21,18 @@ CAT = os.environ.get("TR_CATALOG", "workspace")
 NAME = "TrackRecord — Sydney Rail Reliability"
 
 
+QN = "main_query"  # the widget's query name; encodings link to it via spec.data.queryName
+
+
 def _q(dataset, fields, disaggregated):
-    return [{"name": "main", "query": {"datasetName": dataset, "fields": fields,
-                                       "disaggregated": disaggregated}}]
+    return [{"name": QN, "query": {"datasetName": dataset, "fields": fields,
+                                   "disaggregated": disaggregated}}]
 
 
 def _counter(name, dataset, field, label):
     return {"name": name,
             "queries": _q(dataset, [{"name": field, "expression": f"`{field}`"}], True),
-            "spec": {"version": 2, "widgetType": "counter",
+            "spec": {"version": 2, "widgetType": "counter", "data": {"queryName": QN},
                      "encodings": {"value": {"fieldName": field, "rowNumber": 1,
                                              "displayName": label}}}}
 
@@ -39,6 +42,7 @@ def _bar(name, dataset, dim, measure_expr, measure_name, xlab, ylab, line=False)
             "queries": _q(dataset, [{"name": dim, "expression": f"`{dim}`"},
                                     {"name": measure_name, "expression": measure_expr}], False),
             "spec": {"version": 3, "widgetType": "line" if line else "bar",
+                     "data": {"queryName": QN},
                      "encodings": {
                          "x": {"fieldName": dim,
                                "scale": {"type": "quantitative" if line else "categorical"},
@@ -47,11 +51,17 @@ def _bar(name, dataset, dim, measure_expr, measure_name, xlab, ylab, line=False)
                                "displayName": ylab}}}}
 
 
-def _table(name, dataset, cols):
-    fields = [{"name": c, "expression": f"`{c}`"} for c, _ in cols]
-    columns = [{"fieldName": c, "displayName": lbl} for c, lbl in cols]
-    return {"name": name, "queries": _q(dataset, fields, True),
-            "spec": {"version": 1, "widgetType": "table", "encodings": {"columns": columns}}}
+def _hbar(name, dataset, dim, measure_expr, measure_name, xlab, ylab):
+    # horizontal bar: quantitative on x, category on y (reads well for long labels)
+    return {"name": name,
+            "queries": _q(dataset, [{"name": dim, "expression": f"`{dim}`"},
+                                    {"name": measure_name, "expression": measure_expr}], False),
+            "spec": {"version": 3, "widgetType": "bar", "data": {"queryName": QN},
+                     "encodings": {
+                         "x": {"fieldName": measure_name, "scale": {"type": "quantitative"},
+                               "displayName": xlab},
+                         "y": {"fieldName": dim, "scale": {"type": "categorical"},
+                               "displayName": ylab}}}}
 
 
 def _pos(widget, x, y, width, height):
@@ -82,9 +92,8 @@ def build_spec() -> dict:
                   "Line", "Avg delay (min)"), 0, 3, 3, 6),
         _pos(_bar("byhour", "hourly", "sched_hour", "AVG(`avg_delay_min`)", "avg_delay",
                   "Scheduled hour", "Avg delay (min)", line=True), 3, 3, 3, 6),
-        _pos(_table("stations", "stops", [("stop_name", "Station"), ("avg_delay_min", "Avg delay (min)"),
-                                          ("pct_late_5min", "% >5min late"), ("stop_events", "Events")]),
-             0, 9, 3, 6),
+        _pos(_hbar("stations", "stops", "stop_name", "AVG(`avg_delay_min`)", "avg_delay",
+                   "Avg delay (min)", "Station"), 0, 9, 3, 6),
         _pos(_bar("byweather", "weather", "condition", "AVG(`avg_delay_min`)", "avg_delay",
                   "Condition", "Avg delay (min)"), 3, 9, 3, 6),
     ]

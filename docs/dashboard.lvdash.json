@@ -46,7 +46,7 @@
             "name": "on_time",
             "queries": [
               {
-                "name": "main",
+                "name": "main_query",
                 "query": {
                   "datasetName": "kpi",
                   "fields": [
@@ -62,6 +62,9 @@
             "spec": {
               "version": 2,
               "widgetType": "counter",
+              "data": {
+                "queryName": "main_query"
+              },
               "encodings": {
                 "value": {
                   "fieldName": "pct_on_time",
@@ -83,7 +86,7 @@
             "name": "avg_delay",
             "queries": [
               {
-                "name": "main",
+                "name": "main_query",
                 "query": {
                   "datasetName": "kpi",
                   "fields": [
@@ -99,6 +102,9 @@
             "spec": {
               "version": 2,
               "widgetType": "counter",
+              "data": {
+                "queryName": "main_query"
+              },
               "encodings": {
                 "value": {
                   "fieldName": "avg_delay_min",
@@ -120,7 +126,7 @@
             "name": "p90",
             "queries": [
               {
-                "name": "main",
+                "name": "main_query",
                 "query": {
                   "datasetName": "kpi",
                   "fields": [
@@ -136,6 +142,9 @@
             "spec": {
               "version": 2,
               "widgetType": "counter",
+              "data": {
+                "queryName": "main_query"
+              },
               "encodings": {
                 "value": {
                   "fieldName": "p90_delay_min",
@@ -157,7 +166,7 @@
             "name": "byline",
             "queries": [
               {
-                "name": "main",
+                "name": "main_query",
                 "query": {
                   "datasetName": "lines",
                   "fields": [
@@ -177,6 +186,9 @@
             "spec": {
               "version": 3,
               "widgetType": "bar",
+              "data": {
+                "queryName": "main_query"
+              },
               "encodings": {
                 "x": {
                   "fieldName": "line_code",
@@ -207,7 +219,7 @@
             "name": "byhour",
             "queries": [
               {
-                "name": "main",
+                "name": "main_query",
                 "query": {
                   "datasetName": "hourly",
                   "fields": [
@@ -227,6 +239,9 @@
             "spec": {
               "version": 3,
               "widgetType": "line",
+              "data": {
+                "queryName": "main_query"
+              },
               "encodings": {
                 "x": {
                   "fieldName": "sched_hour",
@@ -257,7 +272,7 @@
             "name": "stations",
             "queries": [
               {
-                "name": "main",
+                "name": "main_query",
                 "query": {
                   "datasetName": "stops",
                   "fields": [
@@ -266,44 +281,35 @@
                       "expression": "`stop_name`"
                     },
                     {
-                      "name": "avg_delay_min",
-                      "expression": "`avg_delay_min`"
-                    },
-                    {
-                      "name": "pct_late_5min",
-                      "expression": "`pct_late_5min`"
-                    },
-                    {
-                      "name": "stop_events",
-                      "expression": "`stop_events`"
+                      "name": "avg_delay",
+                      "expression": "AVG(`avg_delay_min`)"
                     }
                   ],
-                  "disaggregated": true
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 1,
-              "widgetType": "table",
+              "version": 3,
+              "widgetType": "bar",
+              "data": {
+                "queryName": "main_query"
+              },
               "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "stop_name",
-                    "displayName": "Station"
+                "x": {
+                  "fieldName": "avg_delay",
+                  "scale": {
+                    "type": "quantitative"
                   },
-                  {
-                    "fieldName": "avg_delay_min",
-                    "displayName": "Avg delay (min)"
+                  "displayName": "Avg delay (min)"
+                },
+                "y": {
+                  "fieldName": "stop_name",
+                  "scale": {
+                    "type": "categorical"
                   },
-                  {
-                    "fieldName": "pct_late_5min",
-                    "displayName": "% >5min late"
-                  },
-                  {
-                    "fieldName": "stop_events",
-                    "displayName": "Events"
-                  }
-                ]
+                  "displayName": "Station"
+                }
               }
             }
           },
@@ -319,7 +325,7 @@
             "name": "byweather",
             "queries": [
               {
-                "name": "main",
+                "name": "main_query",
                 "query": {
                   "datasetName": "weather",
                   "fields": [
@@ -339,6 +345,9 @@
             "spec": {
               "version": 3,
               "widgetType": "bar",
+              "data": {
+                "queryName": "main_query"
+              },
               "encodings": {
                 "x": {
                   "fieldName": "condition",
