@@ -20,6 +20,7 @@ trackrecord-collect = "trackrecord.ingest.realtime:main"
 trackrecord-gtfs = "trackrecord.ingest.static_gtfs:main"
 trackrecord-bronze = "trackrecord.lakehouse.bronze:main"
 trackrecord-upload = "trackrecord.lakehouse.upload:main"
+trackrecord-silver = "trackrecord.lakehouse.silver:main"
 
 [build-system]
 requires = ["uv_build>=0.11.6,<0.12.0"]
