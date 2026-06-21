@@ -18,7 +18,7 @@ from .. import config
 from .common import client, warehouse_id
 
 CAT = os.environ.get("TR_CATALOG", "workspace")
-NAME = "TrackRecord — Sydney Rail Reliability"
+NAME = "NSW Public Transport Tracker"
 
 
 QN = "main_query"  # the widget's query name; encodings link to it via spec.data.queryName

@@ -14,7 +14,8 @@ from __future__ import annotations
 import os
 import time
 
-from databricks.sdk.service.jobs import NotebookTask, Task, TaskDependency
+from databricks.sdk.service.jobs import (CronSchedule, JobSettings, NotebookTask,
+                                          PauseStatus, Task, TaskDependency)
 from databricks.sdk.service.workspace import ImportFormat, Language
 
 from .common import client
@@ -22,8 +23,11 @@ from .gold import STATEMENTS as GOLD
 from .silver import SILVER_SQL
 
 CAT = os.environ.get("TR_CATALOG", "workspace")
-JOB_NAME = "TrackRecord — medallion refresh"
+JOB_NAME = "NSW Public Transport Tracker — medallion refresh"
 VROOT = f"/Volumes/{CAT}/bronze/raw"
+# Daily at 06:00 Sydney — rebuilds the medallion from the Volume the cron fills.
+SCHEDULE = CronSchedule(quartz_cron_expression="0 0 6 * * ?",
+                        timezone_id="Australia/Sydney", pause_status=PauseStatus.UNPAUSED)
 
 BRONZE_STMTS = [
     f"CREATE OR REPLACE TABLE {CAT}.bronze.rt_trip_updates AS "
@@ -73,11 +77,11 @@ def main(argv: list[str] | None = None) -> int:
     existing = next((j for j in w.jobs.list(name=JOB_NAME) if j.settings.name == JOB_NAME), None)
     if existing:
         job_id = existing.job_id
-        from databricks.sdk.service.jobs import JobSettings
-        w.jobs.reset(job_id=job_id, new_settings=JobSettings(name=JOB_NAME, tasks=tasks))
+        w.jobs.reset(job_id=job_id,
+                     new_settings=JobSettings(name=JOB_NAME, tasks=tasks, schedule=SCHEDULE))
         print(f"updated job {job_id}")
     else:
-        job_id = w.jobs.create(name=JOB_NAME, tasks=tasks).job_id
+        job_id = w.jobs.create(name=JOB_NAME, tasks=tasks, schedule=SCHEDULE).job_id
         print(f"created job {job_id}")
 
     run = w.jobs.run_now(job_id=job_id)

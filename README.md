@@ -1,4 +1,6 @@
-# TrackRecord — Sydney's public-transport reliability, measured end-to-end
+# NSW Public Transport Tracker
+
+*Sydney train reliability, measured end-to-end — repo codename `trackrecord`.*
 
 A **data-engineering / lakehouse** project: Transport for NSW **GTFS-Realtime** feeds →
 a **Databricks medallion** (Bronze → Silver → Gold on **Delta Lake + Unity Catalog**) →
@@ -8,7 +10,7 @@ The story: **how on-time Sydney's network really is** — actual vs scheduled st
 **which lines and times of day are worst**, and **how much rain adds to delays**.
 
 > Portfolio project 3 of 3 — the data-engineering lane.
-> (1: *Global Pulse*, an AI/RAG news agent. 2: *GridLens*, an analytics-engineering pipeline on the NEM.)
+> (1: *Global News Agent* — AI/RAG news intelligence. 2: *Energy Grid Dashboard* — analytics engineering on Australia's NEM.)
 
 ## Architecture
 
