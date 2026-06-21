@@ -55,7 +55,7 @@ Attribution: contains data sourced from Transport for NSW; weather by Open-Meteo
 - [x] **Phase 2 — Silver.** `workspace.silver.stop_delays` (`trackrecord-silver`): canonical `delay = coalesce(rt arrival/departure delay)`, deduped to the latest capture per (trip, service_date, stop), enriched with line / station / scheduled time + **weather**. **Join quirk solved:** RT↔static match on `(trip_id, stop_id)` (RT `stop_sequence` is sparse/NULL) → 98% scheduled-time coverage; Open-Meteo hourly weather joined by (date, hour). Snapshot worst T-line = T4 (Cronulla↔Bondi Jn); rain-vs-delay awaits actual rain.
 - [x] **Phase 3 — Gold + dashboard.** Gold aggregates (`trackrecord-gold`): `network_kpi`, `line_punctuality`, `hourly_punctuality`, `daily_punctuality` (+ rain), `stop_punctuality`, `weather_delay`. **AI/BI (Lakeview) dashboard** built + published via SDK (`trackrecord-dashboard`; spec artifact `docs/dashboard.lvdash.json`): 3 KPI counters + by-line / by-hour / worst-stations / rain charts — **verified rendering**. Snapshot: 99.6% on-time (≤5 min); worst line T4 (Cronulla↔Bondi Jn); worst station Cronulla. *Lakeview gotcha: the widget query must be named `main_query` and linked via `spec.data.queryName`, else the server silently strips fields+encodings.*
 - [x] **Phase 4 — ML (MLflow).** `trackrecord-train`: LogisticRegression(balanced) on Silver features (line, scheduled hour, day, route type, rain) → **MLflow** run → registered in **Unity Catalog** as `workspace.gold.late5_classifier` v1 → batch-scored to `workspace.gold.delay_predictions`. Snapshot AUC 0.97 / recall 1.0 / precision 0.19 (only 96 positives in 1 day — provisional, sharpens with peak data); highest-risk = intercity SCO/SHL/CCN + T4. *Local scikit-learn logged to the workspace's managed MLflow + UC registry.*
-- [ ] **Phase 5 — Orchestrate & polish.** Databricks Workflow; `FINDINGS.md` write-up; final diagram.
+- [x] **Phase 5 — Orchestrate & polish.** **Databricks Workflow** (`trackrecord-workflow`): a 3-task serverless Job — bronze → silver → gold with dependencies, notebooks generated from the *same SQL* the modules use — created and run-verified ✅. Plus [`FINDINGS.md`](FINDINGS.md) write-up and [`DATABRICKS.md`](DATABRICKS.md) run-notes.
 
 ## Quickstart (local)
 
@@ -63,6 +63,19 @@ Attribution: contains data sourced from Transport for NSW; weather by Open-Meteo
 uv sync                              # create .venv + install deps
 uv run trackrecord-smoke --selftest  # offline: verify the protobuf toolchain
 
-cp .env.example .env                 # paste your TfNSW API key
+cp .env.example .env                 # TfNSW API key + Databricks host/token
 uv run trackrecord-smoke             # live: Sydney Trains trip updates
+
+# ingest -> lakehouse -> model (drives Databricks via the SDK)
+uv run trackrecord-gtfs              # static GTFS -> data/raw
+uv run trackrecord-collect           # one live GTFS-RT capture
+uv run trackrecord-weather           # Open-Meteo hourly precip
+uv run trackrecord-bronze            # UC schemas + Volume + Bronze Delta
+uv run trackrecord-silver            # Silver: per-stop delay + weather
+uv run trackrecord-gold              # Gold aggregates
+uv run trackrecord-dashboard         # AI/BI (Lakeview) dashboard
+uv run trackrecord-train             # MLflow model + UC registry + predictions
+uv run trackrecord-workflow          # Databricks Job: bronze -> silver -> gold
 ```
+
+See **[FINDINGS.md](FINDINGS.md)** for results and **[DATABRICKS.md](DATABRICKS.md)** for platform run-notes and the Free Edition quirks worked around.
