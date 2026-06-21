@@ -46,3 +46,11 @@ def run_sql(w: WorkspaceClient, wid: str, statement: str, timeout_s: int = 240):
 def rows(resp) -> list[list]:
     res = resp.result
     return list(res.data_array) if res and res.data_array else []
+
+
+def df(resp):
+    """Build a pandas DataFrame from a statement-execution response."""
+    import pandas as pd
+
+    cols = [c.name for c in resp.manifest.schema.columns]
+    return pd.DataFrame(rows(resp), columns=cols)

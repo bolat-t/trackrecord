@@ -12,6 +12,8 @@ dependencies = [
     "duckdb>=1.1.0",
     "python-dotenv>=1.0.1",
     "databricks-sdk>=0.30",
+    "mlflow>=3.14.0",
+    "scikit-learn>=1.9.0",
 ]
 
 [project.scripts]
@@ -24,6 +26,7 @@ trackrecord-upload = "trackrecord.lakehouse.upload:main"
 trackrecord-silver = "trackrecord.lakehouse.silver:main"
 trackrecord-gold = "trackrecord.lakehouse.gold:main"
 trackrecord-dashboard = "trackrecord.lakehouse.dashboard:main"
+trackrecord-train = "trackrecord.ml.train:main"
 
 [build-system]
 requires = ["uv_build>=0.11.6,<0.12.0"]
